@@ -2,8 +2,15 @@ import {useState, useEffect} from "react";
 import Link from "next/link";
 import {MainLayout} from "../../components/MainLayout";
 import {useRouter} from "next/router";
+import {Spinner} from "../../components/Spinner";
+import {NextPageContext} from "next";
+import {MyPost} from "../../interfaces/post";
 
-const Post = ( { post: serverPost }: any) => {
+interface PostPageProps {
+    post: MyPost
+}
+
+const Post = ( { post: serverPost }: PostPageProps) => {
     const [post, setPost] = useState(serverPost);
     const router = useRouter();
 
@@ -22,7 +29,7 @@ const Post = ( { post: serverPost }: any) => {
     if (!post) {
         return (
             <MainLayout title={''}>
-                <p>Loading...</p>
+                <Spinner/>
             </MainLayout>
         )
     }
@@ -39,14 +46,15 @@ const Post = ( { post: serverPost }: any) => {
     )
 }
 
-Post.getInitialProps = async ({query, req}: any) => {
-    if (!req) {
-        return {
-            post: null
-        }
+interface PostNextPageContext extends NextPageContext {
+    query: {
+        id: string
     }
-    const response = await fetch(`http://localhost:4200/posts/${query.id}`)
-    const post = await response.json();
+}
+
+export async function getInitialProps({query}: PostNextPageContext) {
+    const response = await fetch(`${process.env.API_URL}/posts/${query.id}`);
+    const post: MyPost = await response.json();
 
     return {
         post
